@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Penumbra</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%230b1020' stroke='%2338bdf8' stroke-width='3'/%3E%3Cpath d='M16 3a13 13 0 0 1 0 26z' fill='%23fbbf24'/%3E%3C/svg%3E"
+    />
+    <script type="module" crossorigin src="/penumbra/assets/index-CodcuvnX.js"></script>
+    <link rel="stylesheet" crossorigin href="/penumbra/assets/index-DVq56EK4.css">
+  </head>
+  <body>
+    <main id="app">
+      <section id="menu">
+        <h1>Penumbra</h1>
+        <p class="tag">A two-player turn-based strategy game.</p>
+        <div class="menubtns">
+          <button id="start-hotseat" class="primary">Two players, one screen</button>
+          <button id="start-solo">Versus AI — adaptive</button>
+          <button id="start-solo-simple">Versus AI — simple</button>
+          <button id="start-demo">Watch a demonstration</button>
+        </div>
+        <p class="tag dim">
+          Hotseat hides the board between turns: neither side may see the other’s fog view.
+        </p>
+      </section>
+
+      <section id="game" class="hidden">
+        <header>
+          <div>
+            <div id="whose" class="whose">—</div>
+            <div id="turn" class="dim"></div>
+          </div>
+          <div class="headbtns">
+            <button id="counters-toggle" class="ghost">Counters</button>
+            <button id="help-toggle" class="ghost">Rules</button>
+          </div>
+        </header>
+
+        <div class="layout">
+          <div class="boardwrap">
+            <canvas id="board"></canvas>
+
+            <div id="handoff" class="overlay hidden">
+              <h2 id="handoff-title">Pass the device</h2>
+              <p id="handoff-sub"></p>
+              <button id="handoff-ready" class="primary">I’m ready</button>
+            </div>
+
+            <div id="gameover" class="overlay hidden">
+              <h2>Game over</h2>
+              <p id="result"></p>
+              <button id="again" class="primary">Play again</button>
+            </div>
+          </div>
+
+          <aside class="panel">
+            <div id="alert" class="alert hidden"></div>
+            <div id="status" class="card"></div>
+
+            <div id="controls">
+              <div class="card">
+                <div class="label">Your units</div>
+                <div id="roster"></div>
+                <div id="unassigned" class="hint"></div>
+              </div>
+
+              <div id="stances" class="card"></div>
+              <div id="reinforce" class="card hidden"></div>
+
+              <div class="actions">
+                <button id="brace-rest" class="ghost">Brace the rest</button>
+                <button id="submit" class="primary">Submit orders</button>
+              </div>
+            </div>
+
+            <div id="demopanel" class="card hidden">
+              <div class="label">Demonstration <span id="demo-step"></span></div>
+              <h3 id="demo-title"></h3>
+              <p id="demo-text"></p>
+              <div class="democtl">
+                <button id="demo-prev" class="ghost">‹ Back</button>
+                <button id="demo-play" class="primary">Play</button>
+                <button id="demo-next" class="ghost">Next ›</button>
+              </div>
+              <div class="demospeed">
+                <label for="demo-speed">Speed</label>
+                <input id="demo-speed" type="range" min="0.5" max="10" step="0.5" value="1" />
+                <span id="demo-speed-label">1.0×</span>
+              </div>
+              <div class="democtl">
+                <button id="demo-mute" class="ghost">Mute</button>
+              </div>
+              <button id="demo-exit" class="ghost wide">Leave demonstration</button>
+            </div>
+
+            <div class="card" id="logcard">
+              <div class="label">Last turn</div>
+              <div id="log"></div>
+            </div>
+          </aside>
+        </div>
+
+        <div id="help" class="help">
+          <div class="helpinner">
+            <button id="help-close" class="helpclose" aria-label="Close">×</button>
+            <div id="help-body"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
