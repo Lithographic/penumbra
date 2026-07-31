@@ -76,6 +76,8 @@ export class App {
   private showCounters = localStorage.getItem('penumbra.counters') !== 'off';
   private muted = localStorage.getItem('penumbra.muted') === 'on';
   private demoSpeed = Number(localStorage.getItem('penumbra.speed') ?? '1') || 1;
+  private animT = 1;
+  private animRaf: number | null = null;
 
   constructor() {
     this.board = new BoardView(el<HTMLCanvasElement>('board'));
@@ -204,8 +206,11 @@ export class App {
       this.demoStop();
       return;
     }
+    const forward = i > this.demoIndex;
     this.demoIndex = i;
     this.rebuildDemo();
+    if (forward && DEMO_SCRIPT[i].play) this.startAnim();
+    else this.animT = 1;
     this.render();
     this.speak(DEMO_SCRIPT[i].text);
     if (this.demoPlaying) this.demoSchedule();
@@ -221,6 +226,30 @@ export class App {
     }
   }
 
+  /**
+   * Slide the pieces from where they were to where they ended up.
+   *
+   * Skipped entirely above 4x, where the tween would be shorter than a couple of frames
+   * and would read as a flicker rather than a movement.
+   */
+  private startAnim(): void {
+    if (this.animRaf !== null) cancelAnimationFrame(this.animRaf);
+    const duration = 620 / this.demoSpeed;
+    if (this.demoSpeed > 4 || duration < 120) {
+      this.animT = 1;
+      return;
+    }
+    const started = performance.now();
+    this.animT = 0;
+    const step = (now: number) => {
+      this.animT = Math.min(1, (now - started) / duration);
+      this.render();
+      if (this.animT < 1) this.animRaf = requestAnimationFrame(step);
+      else this.animRaf = null;
+    };
+    this.animRaf = requestAnimationFrame(step);
+  }
+
   private demoStop(): void {
     this.demoPlaying = false;
     if (this.demoTimer !== null) window.clearTimeout(this.demoTimer);
@@ -231,7 +260,7 @@ export class App {
   /** Reading pace: a floor plus time proportional to how much text the beat carries. */
   private beatMs(i = this.demoIndex): number {
     const beat = DEMO_SCRIPT[i];
-    return Math.min(14000, 3200 + beat.text.length * 42) / this.demoSpeed;
+    return Math.max(700, Math.min(14000, 3200 + beat.text.length * 42) / this.demoSpeed);
   }
 
   /** Rough time speech synthesis needs, at a normal speaking rate. */
@@ -531,6 +560,8 @@ export class App {
         ? new Set((DEMO_SCRIPT[this.demoIndex].focus ?? []).map(demoSq))
         : undefined,
       showCounters: this.showCounters,
+      anim:
+        isDemo && this.animT < 1 ? { t: this.animT, from: this.lastPositions } : undefined,
     };
     this.board.render(model);
 

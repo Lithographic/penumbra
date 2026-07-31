@@ -62,6 +62,11 @@ export interface RenderModel {
   focus?: Set<number>;
   /** Overlay the counter relationships onto the pieces. */
   showCounters?: boolean;
+  /**
+   * In-flight movement. `t` runs 0→1 and `from` holds each unit's square before the
+   * turn resolved, so pieces slide between squares instead of teleporting.
+   */
+  anim?: { t: number; from: Map<number, number> };
 }
 
 export class BoardView {
@@ -98,6 +103,19 @@ export class BoardView {
       PAD + xOf(sq) * CELL + CELL / 2,
       PAD + (SIZE - 1 - yOf(sq)) * CELL + CELL / 2,
     ];
+  }
+
+  /** Where a unit should be drawn right now, mid-slide if a move is animating. */
+  private unitPos(m: RenderModel, id: number, sq: number): [number, number] {
+    const a = m.anim;
+    if (!a || a.t >= 1) return this.centre(sq);
+    const from = a.from.get(id);
+    if (from === undefined || from === sq) return this.centre(sq);
+    const [fx, fy] = this.centre(from);
+    const [tx, ty] = this.centre(sq);
+    // Ease-in-out, so a piece accelerates away and settles rather than sliding linearly.
+    const e = a.t < 0.5 ? 2 * a.t * a.t : 1 - Math.pow(-2 * a.t + 2, 2) / 2;
+    return [fx + (tx - fx) * e, fy + (ty - fy) * e];
   }
 
   render(m: RenderModel): void {
@@ -310,11 +328,11 @@ export class BoardView {
 
   private drawUnits(m: RenderModel): void {
     for (const u of m.view.own) {
-      const [cx, cy] = this.centre(u.sq);
+      const [cx, cy] = this.unitPos(m, u.id, u.sq);
       this.drawGlyph(cx, cy, u.type, m.view.me, false);
     }
     for (const e of m.view.visibleEnemies) {
-      const [cx, cy] = this.centre(e.sq);
+      const [cx, cy] = this.unitPos(m, e.id, e.sq);
       this.drawGlyph(cx, cy, e.type, e.owner, false);
     }
     if (m.showCounters) this.drawCounterMarks(m);
