@@ -75,6 +75,7 @@ export class App {
   /** Draw the counter relationships onto the pieces. Persisted across sessions. */
   private showCounters = localStorage.getItem('penumbra.counters') !== 'off';
   private muted = localStorage.getItem('penumbra.muted') === 'on';
+  private demoSpeed = Number(localStorage.getItem('penumbra.speed') ?? '1') || 1;
 
   constructor() {
     this.board = new BoardView(el<HTMLCanvasElement>('board'));
@@ -119,6 +120,12 @@ export class App {
     el('demo-exit').addEventListener('click', () => {
       this.stopSpeech();
       window.location.reload();
+    });
+    el('demo-speed').addEventListener('input', (e) => {
+      this.demoSpeed = Number((e.target as HTMLInputElement).value);
+      localStorage.setItem('penumbra.speed', String(this.demoSpeed));
+      if (this.demoPlaying) this.demoSchedule();
+      this.renderDemo();
     });
     el('demo-mute').addEventListener('click', () => {
       this.muted = !this.muted;
@@ -222,10 +229,29 @@ export class App {
   }
 
   /** Reading pace: a floor plus time proportional to how much text the beat carries. */
+  private beatMs(i = this.demoIndex): number {
+    const beat = DEMO_SCRIPT[i];
+    return Math.min(14000, 3200 + beat.text.length * 42) / this.demoSpeed;
+  }
+
+  /** Rough time speech synthesis needs, at a normal speaking rate. */
+  private speechMs(text: string): number {
+    return text.length * 58;
+  }
+
+  /**
+   * At high playback speeds a beat is gone before it can be read out, and half-spoken
+   * narration cut off mid-sentence is worse than none. So narration is skipped rather
+   * than truncated once the beat is shorter than the sentence needs.
+   */
+  private narrationFits(i = this.demoIndex): boolean {
+    if (!this.demoPlaying) return true; // stepping by hand: always speak
+    return this.beatMs(i) >= this.speechMs(DEMO_SCRIPT[i].text) * 0.85;
+  }
+
   private demoSchedule(): void {
     if (this.demoTimer !== null) window.clearTimeout(this.demoTimer);
-    const beat = DEMO_SCRIPT[this.demoIndex];
-    const ms = Math.min(14000, 3200 + beat.text.length * 42);
+    const ms = this.beatMs();
     this.demoTimer = window.setTimeout(() => {
       if (!this.demoPlaying) return;
       if (this.demoIndex >= DEMO_SCRIPT.length - 1) this.demoStop();
@@ -259,6 +285,10 @@ export class App {
    */
   private speak(text: string): void {
     if (this.muted || typeof window.speechSynthesis === 'undefined') return;
+    if (!this.narrationFits()) {
+      this.stopSpeech();
+      return;
+    }
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -286,6 +316,10 @@ export class App {
     el('demo-play').textContent = this.demoPlaying ? 'Pause' : 'Play';
     el('demo-mute').textContent = this.muted ? 'Unmute' : 'Mute';
     el('demo-mute').classList.toggle('on', !this.muted);
+    (el('demo-speed') as HTMLInputElement).value = String(this.demoSpeed);
+    const tooFast = this.demoPlaying && !this.narrationFits();
+    el('demo-speed-label').textContent =
+      `${this.demoSpeed.toFixed(1)}×${tooFast ? ' — narration off' : ''}`;
     (el('demo-prev') as HTMLButtonElement).disabled = this.demoIndex === 0;
     (el('demo-next') as HTMLButtonElement).disabled =
       this.demoIndex >= DEMO_SCRIPT.length - 1;

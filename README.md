@@ -1,17 +1,11 @@
 # Penumbra
 
-A two-player turn-based strategy game.
+A two-player simultaneous-move strategy game on a 9×9 fog-of-war board, designed as an
+experiment: **can you build a versus game where the winning margin sits in the cognitive
+dimensions humans still beat machines at, without resorting to gimmicks?**
 
-**▶ [Play it in your browser](https://lithographic.github.io/penumbra/)** — two players on
-one screen, or against an AI. There is a guided **Demonstration** mode that plays a full
-annotated game and explains why each move is made.
-
-![Penumbra](media/screenshot.png)
-
-Nine-by-nine board, seven units a side, simultaneous orders under fog of war. It began as
-an experiment: *can you build a versus game whose winning margin sits in the cognitive
-dimensions humans still beat machines at, without resorting to gimmicks?* No twitch
-reflexes, no physical components, no trivia.
+No twitch reflexes, no physical components, no cultural trivia, no LLM referee. Just a
+board, seven units a side, and simultaneous orders.
 
 See [DESIGN.md](DESIGN.md) for the full design and — more usefully — for the measured
 verdict on it. Short version: of the four mechanisms intended to make this hard for AI,

@@ -492,3 +492,24 @@ button:disabled {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+.demospeed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.demospeed input[type='range'] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+#demo-speed-label {
+  min-width: 8.5em;
+  text-align: right;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+}
